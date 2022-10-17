@@ -8,6 +8,10 @@ from core.models import Shop, Product, Image
 from .actions import ActionViewsMixin, EmptyAction, actionwrapper
 
 from django.template.loader import get_template
+
+from .forms import ShopAdminForm
+
+
 # Problem with function in ModelAdmin.get_fields(None) #Issue 33703: (closed: invalid)
 
 # class MyModel(Model):
@@ -63,8 +67,9 @@ class ProductInline(admin.TabularInline):
 class ShopAdmin(ModelAdmin):
     actions = (MyFunc, EmptyAction.as_view())
     list_display = ('title', 'product_count')
-    fields = ('title', )
+    fields = ('title', 'updated')
     inlines = ProductInline,
+    form = ShopAdminForm
 
     def get_queryset(self, *args, **kwargs):
         return super().get_queryset(*args, **kwargs).annotate(product_count=Count('product'))
