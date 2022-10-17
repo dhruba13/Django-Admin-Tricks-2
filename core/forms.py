@@ -7,8 +7,9 @@ class ShopAdminForm(forms.ModelForm):
     _log_object = None
 
     def __init__(self, *args, **kwargs):
-        if kwargs.get('instance') and kwargs.get('instance').pk:
-            self._log_object = LogEntry.objects.filter(object_id=kwargs.get('instance').pk).first()
+        instance = kwargs.get('instance')
+        if instance and instance.pk:
+            self._log_object = LogEntry.objects.filter(object_id=instance.pk).first()
             kwargs['initial'] = kwargs.get('initial', {}) | {'updated': f'{self._log_object.action_time}'}
         super(ShopAdminForm, self).__init__(*args, **kwargs)
 
