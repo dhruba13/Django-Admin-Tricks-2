@@ -15,7 +15,7 @@ class ShopAdminForm(forms.ModelForm):
 
     def clean_updated(self):
         value = self.cleaned_data['updated']
-        if value == f'{self._log_object.action_time}':
+        if self._log_object and value == f'{self._log_object.action_time}':
             return value
         raise forms.ValidationError('Error')
 
