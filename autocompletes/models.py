@@ -10,17 +10,19 @@ from settings import default_translator as _
 
 
 class ManyToManyDescriptor(ManyToManyDescriptor):
-    def __get__(self, instance, cls=None):
-        response = super().__get__(instance, cls=cls)
-        if instance:
-            return response.filter(self.field._limit_choices_to)
-        return response
+  def __get__(self, instance, cls=None):
+    response = super().__get__(instance, cls=cls)
+    prefetched_objects = getattr(instance, '_prefetched_objects_cache', None) or {}
+    if instance and not prefetched_objects.get(self.field.name) and self.field._limit_choices_to:
+        return response.filter(self.field._limit_choices_to)
+    return response
+
 
 class ManyToManyField(ManyToManyField):
 
-    def contribute_to_class(self, cls, name, *args, **kwargs):
-        super().contribute_to_class(cls, name, *args, **kwargs)
-        setattr(cls, self.name, ManyToManyDescriptor(self.remote_field, reverse=False))
+  def contribute_to_class(self, cls, name, *args, **kwargs):
+    super().contribute_to_class(cls, name, *args, **kwargs)
+    setattr(cls, self.name, ManyToManyDescriptor(self.remote_field, reverse=False))
 
 
 class BaseModel(Model):
@@ -37,9 +39,6 @@ class BaseModel(Model):
 class Land(BaseModel):
     ...
 
-class Region(BaseModel):
-    land = ForeignKey('Land', on_delete=CASCADE)
-    bio = BooleanField(_('Allow BIO products'), default=True, blank=True)
 
 class Visibility(BaseModel):
     product = ForeignKey('Product', on_delete=CASCADE)
@@ -51,17 +50,19 @@ class Product(BaseModel):
     land = ManyToManyField('Land')
     region = ManyToManyField('Region', through="VisibilityProxy", limit_choices_to=Q(bio=True))
 
-class RegionProxyManager(Manager):
+class RegionManager(Manager):
     def get_queryset(self):
         if hasattr(self, 'through'):
             field = getattr(self.source_field.related_model, self.prefetch_cache_name).field
             super().get_queryset().filter(field._limit_choices_to)
         return super().get_queryset()
 
-class RegionProxy(Region):
-    class Meta:
-        proxy = True
-    objects = RegionProxyManager()
+class Region(BaseModel):
+    land = ForeignKey('Land', on_delete=CASCADE)
+    bio = BooleanField(_('Allow BIO products'), default=True, blank=True)
+
+    # objects = RegionManager()
+
 
 class VisibilityProxy(Visibility):
 
