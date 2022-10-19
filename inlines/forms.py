@@ -9,5 +9,10 @@ class ShopAdminForm(forms.ModelForm):
     def clean__updated(self):
         data = self.cleaned_data['_updated']
         if self.instance.pk and data != f'{self.instance.logs.first()!r}':
-            self.add_error('__all__', forms.ValidationError(_('This object was changed in this time')))
+            self.add_error(
+                '__all__',
+                forms.ValidationError(_('This object was changed in this time'))
+            )
         return data
+
+

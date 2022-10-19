@@ -32,18 +32,19 @@ class ShopAdmin(ModelAdmin):
     form = ShopAdminForm  # why not form_class ???
     fields = 'title', '_updated'
 
-    def get_inline_instances(self, *args, **kwargs):
-        for inline in super().get_inline_instances(*args, **kwargs):
-            vars(inline).update(admin=self)
-            yield inline
-
     def render_change_form(self, request, context, *args, **kwargs):
         log_entry = kwargs['obj'] and kwargs['obj'].logs.first()
         context['adminform'].form.initial['_updated'] = f'{log_entry!r}'
+        ...  # other staff
 
         self.response = super().render_change_form(request, context, *args, **kwargs)
         self.request = request
         return self.response
+
+    def get_inline_instances(self, *args, **kwargs):
+        for inline in super().get_inline_instances(*args, **kwargs):
+            vars(inline).update(admin=self)
+            yield inline
 
     def my_inline(self, obj=None):
         context = self.response.context_data

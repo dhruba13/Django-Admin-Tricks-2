@@ -9,10 +9,12 @@ from django.contrib.admin.models import LogEntry
 class BaseModel(Model):
     class Meta:
         abstract = True
+
     logs = GenericRelation(LogEntry)
-    title = CharField(max_length=255)
+
+    title = CharField(max_length=255, blank=True, default='')
     description = TextField()
-    images = GenericRelation('core.Image')
+    # images = GenericRelation('core.Image')
 
 class Shop(BaseModel):
     owner = ForeignKey(User, on_delete=DO_NOTHING, blank=True, null=True)
