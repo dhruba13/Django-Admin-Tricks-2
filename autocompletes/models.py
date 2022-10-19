@@ -10,19 +10,20 @@ from settings import default_translator as _
 
 
 class ManyToManyDescriptor(ManyToManyDescriptor):
+
   def __get__(self, instance, cls=None):
     response = super().__get__(instance, cls=cls)
-    prefetched_objects = getattr(instance, '_prefetched_objects_cache', None) or {}
-    if instance and not prefetched_objects.get(self.field.name) and self.field._limit_choices_to:
-        return response.filter(self.field._limit_choices_to)
+    if instance and self.field._limit_choices_to:
+        prefetched_objects = getattr(instance, '_prefetched_objects_cache', None) or {}
+        if not prefetched_objects.get(self.field.name):
+            return response.filter(self.field._limit_choices_to)
     return response
-
 
 class ManyToManyField(ManyToManyField):
 
-  def contribute_to_class(self, cls, name, *args, **kwargs):
-    super().contribute_to_class(cls, name, *args, **kwargs)
-    setattr(cls, self.name, ManyToManyDescriptor(self.remote_field, reverse=False))
+    def contribute_to_class(self, cls, name, *args, **kwargs):
+        super().contribute_to_class(cls, name, *args, **kwargs)
+        setattr(cls, self.name, ManyToManyDescriptor(self.remote_field, reverse=False))
 
 
 class BaseModel(Model):
